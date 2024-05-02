@@ -42,7 +42,19 @@
 			<version>5.7.0</version>
 		</dependency>
 	</dependencies>
-
+	<repositories>
+		<repository>
+			<id>fabric8-releases</id>
+			<name>Fabric8 Releases</name>
+			<url>https://maven.fabric8.io/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 	<build>
 		<plugins>
 			<plugin>
@@ -55,6 +67,21 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.38.0</version> <!-- O la versión más reciente disponible -->
+				<configuration>
+					<images>
+						<image>
+							<name>ms-ocr</name>
+							<build>
+								<from>openjdk:17</from>
+							</build>
+						</image>
+					</images>
 				</configuration>
 			</plugin>
 		</plugins>
