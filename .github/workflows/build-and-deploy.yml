@@ -1,0 +1,59 @@
+name: Build and Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine Spring profile
+        id: set_profile
+        run: |
+          if [ "${{ github.ref }}" = 'refs/heads/main' ]; then
+            echo "prod"
+          elif [ "${{ github.ref }}" = 'refs/heads/develop' ]; then
+            echo "dev"
+          else
+            echo "default"
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4.2.1
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+
+      - name: Build with Maven
+        run: |
+          export SPRING_PROFILES_ACTIVE=$(/bin/bash -c 'echo "${{ steps.set_profile.outputs.profile }}"')
+          mvn clean package -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}
+
+      - name: Log in to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t ms-ocr .
+          docker tag ms-ocr ${{ secrets.DOCKER_USERNAME }}/ms-ocr:${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/ms-ocr:${{ github.ref == 'refs/heads/main' && 'prod' || github.ref == 'refs/heads/develop' && 'dev' }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Deploy to production
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.MY_RENDER_API_KEY }}
