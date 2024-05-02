@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy to Develop
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - name: Deploy to production
+      - name: Deploy to develop
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:
           service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
