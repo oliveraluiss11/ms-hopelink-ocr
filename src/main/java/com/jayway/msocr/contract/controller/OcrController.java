@@ -1,7 +1,7 @@
 package com.jayway.msocr.contract.controller;
 
 import com.jayway.msocr.contract.dto.ErrorResponse;
-import com.jayway.msocr.contract.dto.OcrRequest;
+import com.jayway.msocr.contract.dto.OcrEncrypted;
 import com.jayway.msocr.contract.service.OcrService;
 import com.jayway.msocr.exception.NoValidOcrStrategyException;
 import com.jayway.msocr.exception.OcrProcessingException;
@@ -16,7 +16,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.Objects;
 
 import static com.jayway.msocr.util.OcrUtil.getLocalDateTime;
@@ -31,26 +30,17 @@ public class OcrController {
     private final OcrService ocrService;
 
     @PostMapping
-    public ResponseEntity<?> performOCR(
+    public ResponseEntity<OcrEncrypted> performOCR(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("language") String language,
-            @RequestParam("documentNumber") String documentNumber,
-            @RequestParam("documentType") String documentType,
-            @RequestParam("type") String type
-    ) throws IOException {
-        var ocrResponse = ocrService.perfomOcr(file, OcrRequest
-                .builder()
-                .language(language)
-                .documentNumber(documentNumber)
-                .documentType(documentType)
-                .type(type)
-                .build());
+            @RequestParam("language") String language
+    ) throws Exception {
+        var ocrResponse = ocrService.perfomOcr(file, language);
         return ResponseEntity.ok(ocrResponse);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.BAD_REQUEST, REQUEST_ERROR, ex.getLocalizedMessage());
+        ErrorResponse errorResponse = ErrorResponse.create(HttpStatus.BAD_REQUEST, REQUEST_ERROR, ex.getLocalizedMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -59,28 +49,14 @@ public class OcrController {
             OcrProcessingException.class,
             NoValidOcrStrategyException.class})
     public ResponseEntity<ErrorResponse> handleUnsupportedFileExtensionException(RuntimeException ex) {
-        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.CONFLICT, REQUEST_ERROR, ex.getLocalizedMessage());
+        ErrorResponse errorResponse = ErrorResponse.create(HttpStatus.CONFLICT, REQUEST_ERROR, ex.getLocalizedMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleIOException(Exception ex) {
-        ErrorResponse errorResponse = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, SERVER_ERROR_MESSAGE, ex.getLocalizedMessage());
+        ErrorResponse errorResponse = ErrorResponse.create(HttpStatus.INTERNAL_SERVER_ERROR, SERVER_ERROR_MESSAGE, ex.getLocalizedMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
-    private ErrorResponse buildErrorResponse(HttpStatus status, String error, String message) {
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setRegistrationDate(getLocalDateTime());
-        errorResponse.setStatusCode(status);
-        errorResponse.setError(error);
-        errorResponse.setMessage(message);
-        errorResponse.setPath(getRequestPath());
-        return errorResponse;
-    }
-
-    private String getRequestPath() {
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        return request.getRequestURI();
-    }
 }
