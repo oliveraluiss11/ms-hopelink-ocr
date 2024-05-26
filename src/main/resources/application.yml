@@ -3,5 +3,7 @@ server:
 spring:
   application:
     name: ms-ocr
-  profiles:
-    active: prod
+
+ocr:
+  key: "8H1zboIn/nyx0fudtYKiHw=="
+

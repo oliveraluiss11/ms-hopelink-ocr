@@ -24,21 +24,15 @@ public class OcrImageStrategy implements OcrStrategy {
     }
 
     @Override
-    public String apply(File file, OcrRequest ocrRequest) throws OcrProcessingException {
+    public String apply(File file, String language) throws OcrProcessingException {
         var tesseract = new Tesseract();
         tesseract.setDatapath(RESOURCES_TESSDATA);
-        tesseract.setLanguage(ocrRequest.getLanguage());
+        tesseract.setLanguage(language);
         tesseract.setPageSegMode(ONE);
         tesseract.setOcrEngineMode(ONE);
         String result;
         try {
             result = tesseract.doOCR(file);
-            Pattern pattern = Pattern.compile(OPERATION_NUMBER_REGEX);
-            Matcher matcher = pattern.matcher(result);
-            result = Optional.of(matcher)
-                    .filter(Matcher::find)
-                    .map(Matcher::group)
-                    .orElse(result);
         } catch (TesseractException e) {
             throw new OcrProcessingException("Error en el proceso de OCR con Tesseract: " + e.getLocalizedMessage());
         }

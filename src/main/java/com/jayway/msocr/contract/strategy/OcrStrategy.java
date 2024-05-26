@@ -7,5 +7,5 @@ import java.io.File;
 public interface OcrStrategy {
     Boolean isValid(String fileExtension);
 
-    String apply(File file, OcrRequest ocrRequest);
+    String apply(File file, String language);
 }
