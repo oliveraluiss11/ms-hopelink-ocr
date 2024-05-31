@@ -1,11 +1,20 @@
-# Usa una imagen base de Java 17 de Corretto
-FROM amazoncorretto:21-alpine
+FROM ubuntu:latest
 
-# Copia el archivo JAR de la aplicación al contenedor
-COPY target/ms-ocr-0.0.1-SNAPSHOT.jar /app/ms-ocr.jar
+# Actualizar índices de paquetes e instalar tesseract-ocr, Java y dependencias
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr openjdk-21-jdk
 
-# Establece el directorio de trabajo en /app
+# Crear directorio de trabajo
 WORKDIR /app
 
-# Ejecuta la aplicación al iniciar el contenedor
-CMD ["java", "-jar", "ms-ocr.jar"]
+# Copia el JAR de la aplicación
+COPY target/ms-ocr-*.jar /app/ms-ocr-app.jar
+
+# Copiar ruta de ficheros de Tesseract
+COPY ./src/main/resources/tessdata /tessdata
+
+# Otorgar permisos a la carpeta de Tesseract
+RUN chmod -R 755 /tessdata
+
+# Ejecutar la aplicación
+CMD ["java", "-jar", "/app/ms-ocr-app.jar"]

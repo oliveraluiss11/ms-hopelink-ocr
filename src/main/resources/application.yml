@@ -1,9 +1,16 @@
 server:
   port: 9000
+
 spring:
   application:
     name: ms-ocr
 
+  data:
+    mongodb:
+      uri:  mongodb+srv://oliveraluis11:oliveraluis11@cluster0.iflkfqp.mongodb.net/hopelink-dev?retryWrites=true&w=majority
 ocr:
   key: "8H1zboIn/nyx0fudtYKiHw=="
 
+logging:
+  level:
+    org.springframework.web: INFO

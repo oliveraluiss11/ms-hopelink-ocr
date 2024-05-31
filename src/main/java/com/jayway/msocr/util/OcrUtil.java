@@ -8,7 +8,7 @@ import java.util.List;
 
 public class OcrUtil {
 
-    public static final String RESOURCES_TESSDATA = "src/main/resources/tessdata";
+    public static final String RESOURCES_TESSDATA = "/tessdata";
     public static final List<String> SUPPORTED_OCR_EXTENSIONS = Arrays.asList("jpeg", "jpg", "png");
 
     public static LocalDateTime getLocalDateTime() {

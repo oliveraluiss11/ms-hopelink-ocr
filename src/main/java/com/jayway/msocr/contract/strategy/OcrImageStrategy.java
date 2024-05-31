@@ -8,6 +8,9 @@ import net.sourceforge.tess4j.TesseractException;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -26,7 +29,7 @@ public class OcrImageStrategy implements OcrStrategy {
     @Override
     public String apply(File file, String language) throws OcrProcessingException {
         var tesseract = new Tesseract();
-        tesseract.setDatapath(RESOURCES_TESSDATA);
+        tesseract.setDatapath(getResourcePath(RESOURCES_TESSDATA));
         tesseract.setLanguage(language);
         tesseract.setPageSegMode(ONE);
         tesseract.setOcrEngineMode(ONE);
@@ -39,5 +42,17 @@ public class OcrImageStrategy implements OcrStrategy {
         return result;
     }
 
+    private static String getResourcePath(String resourceDirectory) {
+        URL resourceUrl = OcrImageStrategy.class.getResource(resourceDirectory);
+        if (resourceUrl != null) {
+            try {
+                return Paths.get(resourceUrl.toURI()).toString();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Error al obtener la ruta de los recursos: " + e.getLocalizedMessage());
+            }
+        } else {
+            throw new RuntimeException("No se encontró el directorio de recursos: " + resourceDirectory);
+        }
+    }
 
 }

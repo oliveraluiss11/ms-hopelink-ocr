@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  ms-ocr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ms-ocr-api
+    restart: always
+    ports:
+      - 9000:9000
+    volumes:
+      - traces:/app/logs
+    networks:
+      - network
+
+volumes:
+  traces:
+
+networks:
+  network:
+    driver: bridge
+    name: network_demo_tdd
